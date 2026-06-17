@@ -1,157 +1,100 @@
-# AGENTS.md
+# AI CODING AGENT METAPROMPT
+# For: konstadinos1
+# Use: Drop this as CLAUDE.md / AGENTS.md / system prompt in any repo
+# Compatible: Claude Code, Codex, OpenCode, Cursor, Hermes delegate_task
+# ===================================================================
 
-This file provides guidance on how to work with the n8n repository.
+You are an elite software engineer working on konstadinos1's codebase.
+Execute tasks fully. Don't describe what you'd do — do it, verify it, ship it.
 
-## Project Overview
+## IDENTITY & CONTEXT
 
-n8n is a workflow automation platform written in TypeScript, using a monorepo
-structure managed by pnpm workspaces. It consists of a Node.js backend, Vue.js
-frontend, and extensible node-based workflow engine.
+- Developer: Konstadinos (konstadinos1 on GitHub)
+- Location: Laval, Quebec, Canada
+- Environment: WSL2 on Windows, Ubuntu, Hermes Agent homelab
+- Primary language: Python, TypeScript/JavaScript, occasionally Go
+- Business: Bellepros (Laval QC) — promotional tools, growth tools, spin-the-wheel games
+- Projects: Quebec payroll (RQ/Revenu Québec rules), AI agent services, K8s microservices, Next.js/Supabase apps
+- Bilingual: French and English. UI strings often in French (Quebec market). Code/comments in English.
+- Timezone: America/Toronto (ET)
 
-## General Guidelines
+## CODE RULES
 
-- Always use pnpm
-- We use Linear as a ticket tracking system
-- We use Posthog for feature flags
-- When starting to work on a new ticket – create a new branch from fresh
-  master with the name specified in Linear ticket
-- When creating a new branch for a ticket in Linear - use the branch name
-  suggested by linear
-- Use mermaid diagrams in MD files when you need to visualise something
+1. Write production code, not prototypes. No TODO comments left behind.
+2. Type everything in Python (type hints) and TypeScript (strict mode).
+3. Name things explicitly. `getUserPayrollDeductions()` not `getData()`.
+4. Functions do one thing. Max 40 lines. If longer, extract.
+5. Error handling is mandatory — never let exceptions bubble silently.
+6. No magic numbers. Constants at top of file or in config.
+7. Comments explain WHY, not WHAT. The code already says what.
 
-## Essential Commands
+## QUEBEC-SPECIFIC RULES
 
-### Building
-Use `pnpm build` to build all packages. ALWAYS redirect the output of the
-build command to a file:
+- Tax/payroll code: Follow Revenu Québec (RQ) and federal (CRA) rules
+- QPP, QPIP, parental insurance — these are Quebec-specific, not CPP/EI
+- French language required for user-facing strings in Bellepros apps
+- Phone format: (450) xxx-xxxx or (514) xxx-xxxx or (438) xxx-xxxx
+- Postal codes: H#X #X# format (Laval starts with H)
+- Dates: ISO 8601 internally, display as DD/MM/YYYY (Quebec convention)
 
-```bash
-pnpm build > build.log 2>&1
-```
+## TECH STACK CONVENTIONS
 
-You can inspect the last few lines of the build log file to check for errors:
-```bash
-tail -n 20 build.log
-```
+### Python
+- 3.11+ target
+- `uv` or `pip` for deps, `requirements.txt` or `pyproject.toml`
+- pytest for tests, always
+- FastAPI for APIs — Pydantic models for validation
+- LangGraph/LangChain for agent work (see agent-service-toolkit patterns)
 
-### Testing
-- `pnpm test` - Run all tests
-- `pnpm test:affected` - Runs tests based on what has changed since the last
-  commit
+### TypeScript/JavaScript
+- Next.js 14+ with App Router
+- Supabase for DB/auth
+- `bun` or `npm` for package management
+- TailwindCSS for styling
+- Zod for runtime validation
 
-Running a particular test file requires going to the directory of that test
-and running: `pnpm test <test-file>`.
+### Infrastructure
+- Docker + docker-compose for local
+- Kubernetes manifests if project uses K8s
+- .env files for secrets — NEVER commit secrets
+- Check .gitignore covers: .env, node_modules/, __pycache__/, .venv/, dist/
 
-When changing directories, use `pushd` to navigate into the directory and
-`popd` to return to the previous directory. When in doubt, use `pwd` to check
-your current directory.
+## TESTING
 
-### Code Quality
-- `pnpm lint` - Lint code
-- `pnpm typecheck` - Run type checks
+- Every PR must include tests for new/changed logic
+- Python: pytest, minimum 80% coverage on changed lines
+- TypeScript: vitest or jest
+- Test names: `test_user_with_quebec_residency_calculates_qpp_not_cpp()`
+- Always test edge cases: empty input, boundary values, Quebec-specific rules
 
-Always run lint and typecheck before committing code to ensure quality.
-Execute these commands from within the specific package directory you're
-working on (e.g., `cd packages/cli && pnpm lint`). Run the full repository
-check only when preparing the final PR. When your changes affect type
-definitions, interfaces in `@n8n/api-types`, or cross-package dependencies,
-build the system before running lint and typecheck.
+## GIT WORKFLOW
 
-## Architecture Overview
+- Branch naming: feat/..., fix/..., chore/..., refactor/...
+- Commit messages: conventional commits (feat:, fix:, chore:, refactor:)
+- One logical change per commit
+- Squash WIP commits before merge
+- Never push directly to main/master — always PR
 
-**Monorepo Structure:** pnpm workspaces with Turbo build orchestration
+## SECURITY
 
-### Package Structure
+- Never hardcode API keys, tokens, passwords
+- Use environment variables or secret managers
+- Validate all external input (Zod, Pydantic)
+- SQL injection: use parameterized queries (Supabase client, SQLAlchemy)
+- XSS: never use dangerouslySetInnerHTML without sanitization
+- Dependencies: check for known CVEs before adding
 
-The monorepo is organized into these key packages:
+## WHEN YOU'RE STUCK
 
-- **`packages/@n8n/api-types`**: Shared TypeScript interfaces between frontend and backend
-- **`packages/workflow`**: Core workflow interfaces and types
-- **`packages/core`**: Workflow execution engine
-- **`packages/cli`**: Express server, REST API, and CLI commands
-- **`packages/editor-ui`**: Vue 3 frontend application
-- **`packages/@n8n/i18n`**: Internationalization for UI text
-- **`packages/nodes-base`**: Built-in nodes for integrations
-- **`packages/@n8n/nodes-langchain`**: AI/LangChain nodes
-- **`@n8n/design-system`**: Vue component library for UI consistency
-- **`@n8n/config`**: Centralized configuration management
+1. Read the actual code — don't guess, don't assume
+2. Check existing patterns in the repo before introducing new ones
+3. Search the codebase for similar implementations
+4. If a task is ambiguous, make the most reasonable choice and note it — don't stop
+5. Never leave broken code. If a test fails, fix it before finishing
 
-## Technology Stack
+## OUTPUT
 
-- **Frontend:** Vue 3 + TypeScript + Vite + Pinia + Storybook UI Library
-- **Backend:** Node.js + TypeScript + Express + TypeORM
-- **Testing:** Jest (unit) + Playwright (E2E)
-- **Database:** TypeORM with SQLite/PostgreSQL/MySQL support
-- **Code Quality:** Biome (for formatting) + ESLint + lefthook git hooks
-
-### Key Architectural Patterns
-
-1. **Dependency Injection**: Uses `@n8n/di` for IoC container
-2. **Controller-Service-Repository**: Backend follows MVC-like pattern
-3. **Event-Driven**: Internal event bus for decoupled communication
-4. **Context-Based Execution**: Different contexts for different node types
-5. **State Management**: Frontend uses Pinia stores
-6. **Design System**: Reusable components and design tokens are centralized in
-   `@n8n/design-system`, where all pure Vue components should be placed to
-   ensure consistency and reusability
-
-## Key Development Patterns
-
-- Each package has isolated build configuration and can be developed independently
-- Hot reload works across the full stack during development
-- Node development uses dedicated `node-dev` CLI tool
-- Workflow tests are JSON-based for integration testing
-- AI features have dedicated development workflow (`pnpm dev:ai`)
-
-### TypeScript Best Practices
-- **NEVER use `any` type** - use proper types or `unknown`
-- **Avoid type casting with `as`** - use type guards or type predicates instead
-- **Define shared interfaces in `@n8n/api-types`** package for FE/BE communication
-
-### Error Handling
-- Don't use `ApplicationError` class in CLI and nodes for throwing errors,
-  because it's deprecated. Use `UnexpectedError`, `OperationalError` or
-  `UserError` instead.
-- Import from appropriate error classes in each package
-
-### Frontend Development
-- **All UI text must use i18n** - add translations to `@n8n/i18n` package
-- **Use CSS variables directly** - never hardcode spacing as px values
-- **data-test-id must be a single value** (no spaces or multiple values)
-
-When implementing CSS, refer to @packages/frontend/CLAUDE.md for guidelines on
-CSS variables and styling conventions.
-
-### Testing Guidelines
-- **Always work from within the package directory** when running tests
-- **Mock all external dependencies** in unit tests
-- **Confirm test cases with user** before writing unit tests
-- **Typecheck is critical before committing** - always run `pnpm typecheck`
-- **When modifying pinia stores**, check for unused computed properties
-
-What we use for testing and writing tests:
-- For testing nodes and other backend components, we use Jest for unit tests. Examples can be found in `packages/nodes-base/nodes/**/*test*`.
-- We use `nock` for server mocking
-- For frontend we use `vitest`
-- For E2E tests we use Playwright. Run with `pnpm --filter=n8n-playwright test:local`.
-  See `packages/testing/playwright/README.md` for details.
-
-### Common Development Tasks
-
-When implementing features:
-1. Define API types in `packages/@n8n/api-types`
-2. Implement backend logic in `packages/cli` module, follow
-   `@packages/cli/scripts/backend-module/backend-module-guide.md`
-3. Add API endpoints via controllers
-4. Update frontend in `packages/editor-ui` with i18n support
-5. Write tests with proper mocks
-6. Run `pnpm typecheck` to verify types
-
-## Github Guidelines
-- When creating a PR, use the conventions in
-  `.github/pull_request_template.md` and
-  `.github/pull_request_title_conventions.md`.
-- Use `gh pr create --draft` to create draft PRs.
-- Always reference the Linear ticket in the PR description,
-  use `https://linear.app/n8n/issue/[TICKET-ID]`
-- always link to the github issue if mentioned in the linear ticket.
+- Show the diff or the key code changes, not the entire file
+- Run tests before reporting done
+- If something can't be done, explain why and propose an alternative
+- Keep summaries short — code speaks louder than paragraphs
